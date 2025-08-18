@@ -14,6 +14,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="uz">
+      <head>
+        <meta
+          name="facebook-domain-verification"
+          content="2utcfwt5qtlms2ka8w93itx2po5uag"
+        />
+      </head>
       <body className="antialiased">{children}</body>
     </html>
   )
