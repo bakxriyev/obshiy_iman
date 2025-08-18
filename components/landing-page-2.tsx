@@ -6,7 +6,7 @@ import RegistrationModal from "./register-modal"
 import { useRouter } from "next/navigation"
 import axios from "axios"
 
-export default function LandingPage2() {
+export default function LandingPage3() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const router = useRouter()
 

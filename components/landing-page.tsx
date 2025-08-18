@@ -5,7 +5,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import RegistrationModal from "./register-modal"
 
-export default function LandingPage3() {
+export default function LandingPage1() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const router = useRouter()
 
