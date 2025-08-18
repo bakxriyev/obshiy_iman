@@ -6,14 +6,13 @@ import { useState, useRef, useEffect } from "react"
 interface RegistrationModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (data: { full_name: string; phone_number: string; tg_user: string }) => void
+  onSubmit: (data: { full_name: string; phone_number: string }) => void
 }
 
 export default function RegistrationModal({ isOpen, onClose, onSubmit }: RegistrationModalProps) {
   const [formData, setFormData] = useState({
     full_name: "",
     phone_number: "+998",
-    tg_user: "",
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -25,7 +24,6 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }: Registr
       setFormData({
         full_name: "",
         phone_number: "+998",
-        tg_user: "",
       })
       setError(null)
     }
@@ -39,9 +37,17 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }: Registr
     if (name === "phone_number") {
       // Remove any non-numeric characters except the +
       const numericValue = value.replace(/[^\d+]/g, "")
+
+      if (numericValue.length > 13) {
+        return // Don't update if exceeds limit
+      }
+
       if (!numericValue.startsWith("+998")) {
         // If user deletes the prefix, keep it
-        setFormData((prev) => ({ ...prev, [name]: "+998" + numericValue.replace("+998", "") }))
+        const newValue = "+998" + numericValue.replace("+998", "")
+        if (newValue.length <= 13) {
+          setFormData((prev) => ({ ...prev, [name]: newValue }))
+        }
       } else {
         setFormData((prev) => ({ ...prev, [name]: numericValue }))
       }
@@ -116,52 +122,77 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }: Registr
     setLoading(true)
     setError(null)
 
-    // Immediately call onSubmit to redirect to thank you page
-    onSubmit(formData)
-
-    // Send data to backend asynchronously in the background
-    const sendToBackend = async () => {
-      try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://orqa.imanakhmedovna.uz"
-
-        if (!backendUrl) {
-          console.warn("Backend URL not configured, skipping backend submission")
-          return
-        }
-
-        console.log("Sending data to backend:", backendUrl, formData)
-
-        const response = await fetch(`${backendUrl}/users`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({
-            full_name: formData.full_name,
-            phone_number: formData.phone_number,
-            tg_user: formData.tg_user || "", // Send null if empty
-          }),
-        })
-
-        console.log("Response status:", response.status)
-
-        if (!response.ok) {
-          const errorText = await response.text()
-          console.error("Server error response:", errorText)
-          throw new Error(`Server error: ${response.status} - ${errorText}`)
-        }
-
-        const result = await response.json()
-        console.log("Success response:", result)
-      } catch (err) {
-        console.error("Background registration error:", err)
-        // Silently handle errors - user is already on thank you page
-      }
+    // Validate phone number format (+998 followed by exactly 9 digits)
+    if (formData.phone_number.length !== 13) {
+      setError("Telefon raqami noto'g'ri formatda. +998XXXXXXXXX formatida kiriting.")
+      setLoading(false)
+      return
     }
 
-    // Execute backend call in background
-    sendToBackend()
+    // Validate that it starts with +998 and has exactly 9 more digits
+    const phoneRegex = /^\+998\d{9}$/
+    if (!phoneRegex.test(formData.phone_number)) {
+      setError("Telefon raqami noto'g'ri formatda. +998XXXXXXXXX formatida kiriting.")
+      setLoading(false)
+      return
+    }
+
+    // Validate name is not empty
+    if (!formData.full_name.trim()) {
+      setError("Iltimos, ismingizni kiriting.")
+      setLoading(false)
+      return
+    }
+
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://orqa.imanakhmedovna.uz"
+
+      console.log("Sending data to backend:", backendUrl, formData)
+
+      const response = await fetch(`${backendUrl}/users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          full_name: formData.full_name.trim(),
+          phone_number: formData.phone_number,
+          tg_user: "",
+        }),
+      })
+
+      console.log("Response status:", response.status)
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error("Server error response:", errorText)
+
+        if (response.status === 400) {
+          setError("Ma'lumotlar noto'g'ri formatda yuborildi. Iltimos, qaytadan urinib ko'ring.")
+        } else if (response.status === 409) {
+          setError("Bu telefon raqami allaqachon ro'yxatdan o'tgan.")
+        } else if (response.status >= 500) {
+          setError("Server xatoligi yuz berdi. Iltimos, keyinroq urinib ko'ring.")
+        } else {
+          setError("Xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.")
+        }
+        setLoading(false)
+        return
+      }
+
+      const result = await response.json()
+      console.log("Success response:", result)
+
+      onSubmit({
+        full_name: formData.full_name,
+        phone_number: formData.phone_number,
+      })
+    } catch (err) {
+      console.error("Registration error:", err)
+      setError("Internet aloqasi bilan bog'liq muammo. Iltimos, qaytadan urinib ko'ring.")
+      setLoading(false)
+    }
   }
 
   // Focus cursor at the end of the prefilled value when input is focused
@@ -292,6 +323,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }: Registr
               type="tel"
               inputMode="numeric"
               pattern="[+][0-9]*"
+              maxLength={13}
               value={formData.phone_number}
               onChange={handleChange}
               onKeyDown={(e) => handleKeyDown(e, "+998")}
@@ -302,9 +334,8 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }: Registr
               className="w-full px-4 py-3 bg-[#0a2a4a]/60 border border-[#4db5ff]/20 rounded-lg focus:ring-2 focus:ring-[#4db5ff]/50 text-white placeholder-white/50"
               placeholder="+998 XX XXX XX XX"
             />
+            <div className="text-xs text-white/60 text-right">{formData.phone_number.length}/13</div>
           </div>
-
-      
 
           <button type="submit" disabled={loading} className="relative w-full">
             <div className="relative bg-[#4db5ff] rounded-lg py-3 px-6 flex items-center justify-center">
@@ -333,7 +364,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }: Registr
                   <span className="text-[#041a2e] font-bold">Yuborilmoqda...</span>
                 </>
               ) : (
-                <span className="text-[#041a2e] font-bold">YOPIQ KANALGA QOSHILISH</span>
+                <span className="text-[#041a2e] font-bold">Yopiq kanalga qo'shilish</span>
               )}
             </div>
           </button>

@@ -13,7 +13,7 @@ export default function LandingPage1() {
     setIsModalOpen(true)
   }
 
-  const handleModalSubmit = (data: { full_name: string; phone_number: string; tg_user: string }) => {
+  const handleModalSubmit = (data: { full_name: string; phone_number: string; }) => {
     console.log("Registration data:", data)
     setIsModalOpen(false)
     router.push("/thank-you")
