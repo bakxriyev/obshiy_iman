@@ -13,7 +13,7 @@ const LandingPageComponent = dynamic(() => import("../components/landing-page"),
 export default function Page() {
   return (
     <div>
-      <LandingPage1 />
+      <LandingPage3 />
     </div>
   )
 }

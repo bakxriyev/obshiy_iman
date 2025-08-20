@@ -14,11 +14,15 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }: Registr
     full_name: "",
     phone_number: "+998",
   })
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const phoneInputRef = useRef<HTMLInputElement>(null)
 
-  // Reset form when modal opens
+
+
+
+  
   useEffect(() => {
     if (isOpen) {
       setFormData({
@@ -28,7 +32,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }: Registr
       setError(null)
     }
   }, [isOpen])
-
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setError(null) // Clear error when user starts typing
