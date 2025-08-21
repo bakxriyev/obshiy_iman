@@ -6,89 +6,64 @@ import { useState, useRef, useEffect } from "react"
 interface RegistrationModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (data: { full_name: string; phone_number: string }) => void
+  onSubmit: (data: { full_name: string; phone_number: string; tg_user: string }) => void
 }
 
-const countryCodes = [
-  { code: "+998", country: "🇺🇿 Uzbekistan", length: 13 },
-  { code: "+1", country: "🇺🇸 USA", length: 12 },
-  { code: "+7", country: "🇷🇺 Russia", length: 12 },
-  { code: "+44", country: "🇬🇧 UK", length: 13 },
-  { code: "+49", country: "🇩🇪 Germany", length: 13 },
-  { code: "+33", country: "🇫🇷 France", length: 12 },
-  { code: "+39", country: "🇮🇹 Italy", length: 13 },
-  { code: "+34", country: "🇪🇸 Spain", length: 12 },
-  { code: "+86", country: "🇨🇳 China", length: 13 },
-  { code: "+81", country: "🇯🇵 Japan", length: 13 },
-  { code: "+82", country: "🇰🇷 South Korea", length: 13 },
-  { code: "+91", country: "🇮🇳 India", length: 13 },
-  { code: "+90", country: "🇹🇷 Turkey", length: 13 },
-  { code: "+971", country: "🇦🇪 UAE", length: 13 },
-  { code: "+966", country: "🇸🇦 Saudi Arabia", length: 13 },
-]
-
 export default function RegistrationModal({ isOpen, onClose, onSubmit }: RegistrationModalProps) {
-  const [selectedCountry, setSelectedCountry] = useState(countryCodes[0])
   const [formData, setFormData] = useState({
     full_name: "",
-    phone_number: countryCodes[0].code,
+    phone_number: "+998",
+    tg_user: "",
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const phoneInputRef = useRef<HTMLInputElement>(null)
 
+  // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
       setFormData({
         full_name: "",
-        phone_number: selectedCountry.code,
+        phone_number: "+998",
+        tg_user: "",
       })
       setError(null)
     }
-  }, [isOpen, selectedCountry])
-
-  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newCountry = countryCodes.find((c) => c.code === e.target.value) || countryCodes[0]
-    setSelectedCountry(newCountry)
-    setFormData((prev) => ({
-      ...prev,
-      phone_number: newCountry.code,
-    }))
-  }
+  }, [isOpen])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setError(null)
+    setError(null) // Clear error when user starts typing
 
+    // Handle phone number prefix and restrict to numbers only
     if (name === "phone_number") {
+      // Remove any non-numeric characters except the +
       const numericValue = value.replace(/[^\d+]/g, "")
-
-      if (numericValue.length > selectedCountry.length) {
-        return
-      }
-
-      if (!numericValue.startsWith(selectedCountry.code)) {
-        const newValue = selectedCountry.code + numericValue.replace(selectedCountry.code, "")
-        if (newValue.length <= selectedCountry.length) {
-          setFormData((prev) => ({ ...prev, [name]: newValue }))
-        }
+      if (!numericValue.startsWith("+998")) {
+        // If user deletes the prefix, keep it
+        setFormData((prev) => ({ ...prev, [name]: "+998" + numericValue.replace("+998", "") }))
       } else {
         setFormData((prev) => ({ ...prev, [name]: numericValue }))
       }
-    } else {
+    }
+    // Handle other fields normally
+    else {
       setFormData((prev) => ({ ...prev, [name]: value }))
     }
   }
 
+  // Handle key press to ensure prefixes can't be deleted and only numbers are entered
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, prefix: string) => {
     const input = e.currentTarget
     const selectionStart = input.selectionStart || 0
 
+    // Prevent backspace at prefix length position
     if (e.key === "Backspace" && selectionStart <= prefix.length) {
       e.preventDefault()
       return
     }
 
+    // Allow only numeric keys, navigation keys, and special keys
     const allowedKeys = [
       "0",
       "1",
@@ -110,18 +85,22 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }: Registr
       "End",
     ]
 
+    // Prevent entering non-numeric characters
     if (!allowedKeys.includes(e.key) && !e.ctrlKey && !e.metaKey) {
       e.preventDefault()
     }
 
+    // Prevent selection and deletion of prefix
     if (e.key === "a" && e.ctrlKey) {
       e.preventDefault()
+      // Select all text except prefix
       setTimeout(() => {
         input.setSelectionRange(prefix.length, input.value.length)
       }, 0)
     }
   }
 
+  // Handle selection to prevent selecting the prefix
   const handleSelect = (e: React.SyntheticEvent<HTMLInputElement>, prefix: string) => {
     const input = e.currentTarget
     const selectionStart = input.selectionStart || 0
@@ -137,77 +116,55 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }: Registr
     setLoading(true)
     setError(null)
 
-    if (formData.phone_number.length !== selectedCountry.length) {
-      setError(`Telefon raqami noto'g'ri formatda. ${selectedCountry.code}XXXXXXXXX formatida kiriting.`)
-      setLoading(false)
-      return
-    }
+    // Immediately call onSubmit to redirect to thank you page
+    onSubmit(formData)
 
-    const expectedDigits = selectedCountry.length - selectedCountry.code.length
-    const phoneRegex = new RegExp(`^\\${selectedCountry.code}\\d{${expectedDigits}}$`)
-    if (!phoneRegex.test(formData.phone_number)) {
-      setError(`Telefon raqami noto'g'ri formatda. ${selectedCountry.code}XXXXXXXXX formatida kiriting.`)
-      setLoading(false)
-      return
-    }
+    // Send data to backend asynchronously in the background
+    const sendToBackend = async () => {
+      try {
+        const backendUrl = "https://orqa.imanakhmedovna.uz"
 
-    if (!formData.full_name.trim()) {
-      setError("Iltimos, ismingizni kiriting.")
-      setLoading(false)
-      return
-    }
-
-    try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://orqa.imanakhmedovna.uz"
-
-      console.log("Sending data to backend:", backendUrl, formData)
-
-      const response = await fetch(`https://orqa.imanakhmedovna.uz/users`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          full_name: formData.full_name.trim(),
-          phone_number: formData.phone_number,
-          tg_user: "",
-        }),
-      })
-
-      console.log("Response status:", response.status)
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error("Server error response:", errorText)
-
-        if (response.status === 400) {
-          setError("Ma'lumotlar noto'g'ri formatda yuborildi. Iltimos, qaytadan urinib ko'ring.")
-        } else if (response.status === 409) {
-          setError("Bu telefon raqami allaqachon ro'yxatdan o'tgan.")
-        } else if (response.status >= 500) {
-          setError("Server xatoligi yuz berdi. Iltimos, keyinroq urinib ko'ring.")
-        } else {
-          setError("Xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.")
+        if (!backendUrl) {
+          console.warn("Backend URL not configured, skipping backend submission")
+          return
         }
-        setLoading(false)
-        return
+
+        console.log("Sending data to backend:", backendUrl, formData)
+
+        const response = await fetch(`${backendUrl}/users`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            full_name: formData.full_name,
+            phone_number: formData.phone_number,
+            tg_user: formData.tg_user || "", // Send null if empty
+          }),
+        })
+
+        console.log("Response status:", response.status)
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error("Server error response:", errorText)
+          throw new Error(`Server error: ${response.status} - ${errorText}`)
+        }
+
+        const result = await response.json()
+        console.log("Success response:", result)
+      } catch (err) {
+        console.error("Background registration error:", err)
+        // Silently handle errors - user is already on thank you page
       }
-
-      const result = await response.json()
-      console.log("Success response:", result)
-
-      onSubmit({
-        full_name: formData.full_name,
-        phone_number: formData.phone_number,
-      })
-    } catch (err) {
-      console.error("Registration error:", err)
-      setError("Internet aloqasi bilan bog'liq muammo. Iltimos, qaytadan urinib ko'ring.")
-      setLoading(false)
     }
+
+    // Execute backend call in background
+    sendToBackend()
   }
 
+  // Focus cursor at the end of the prefilled value when input is focused
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     const input = e.target
     setTimeout(() => {
@@ -215,28 +172,34 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }: Registr
     }, 0)
   }
 
+  // Handle paste to filter out non-numeric characters
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const pastedText = e.clipboardData.getData("text")
     const numericText = pastedText.replace(/[^\d+]/g, "")
 
     if (pastedText !== numericText) {
       e.preventDefault()
+      // Get the current value and selection
       const input = e.currentTarget
       const currentValue = input.value
       const selectionStart = input.selectionStart || 0
       const selectionEnd = input.selectionEnd || 0
 
-      if (selectionStart < selectedCountry.code.length) {
+      // Ensure we don't replace the prefix
+      if (selectionStart < 4) {
         return
       }
 
+      // Create the new value with only numeric characters
       const newValue = currentValue.substring(0, selectionStart) + numericText + currentValue.substring(selectionEnd)
 
+      // Update the form data
       setFormData((prev) => ({
         ...prev,
         phone_number: newValue,
       }))
 
+      // Set cursor position after paste
       setTimeout(() => {
         input.selectionStart = input.selectionEnd = selectionStart + numericText.length
       }, 0)
@@ -248,6 +211,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }: Registr
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="relative bg-[#041a2e] rounded-2xl p-8 max-w-md w-full mx-4 border border-[#4db5ff]/20 mt-10">
+        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
@@ -265,6 +229,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }: Registr
           </svg>
         </button>
 
+        {/* Banner at the top of the modal */}
         <div className="absolute -top-16 left-0 right-0 bg-gradient-to-r from-[#041a2e] to-[#0a4a8c] text-white py-3 px-4 rounded-t-xl text-center font-bold text-lg shadow-lg transform transition-transform duration-500">
           Davom etish uchun ma'lumotlaringizni kiriting
         </div>
@@ -320,42 +285,26 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }: Registr
               </svg>
               Telefon raqamingiz:
             </label>
-            <div className="flex gap-2">
-              <select
-                id="country_code"
-                value={selectedCountry.code}
-                onChange={handleCountryChange}
-                className="px-3 py-3 bg-[#0a2a4a]/60 border border-[#4db5ff]/20 rounded-lg focus:ring-2 focus:ring-[#4db5ff]/50 text-white text-sm min-w-[140px]"
-              >
-                {countryCodes.map((country) => (
-                  <option key={country.code} value={country.code} className="bg-[#0a2a4a] text-white">
-                    {country.country.split(" ")[0]} {country.code}
-                  </option>
-                ))}
-              </select>
-              <input
-                id="phone_number"
-                name="phone_number"
-                ref={phoneInputRef}
-                type="tel"
-                inputMode="numeric"
-                pattern="[+][0-9]*"
-                maxLength={selectedCountry.length}
-                value={formData.phone_number}
-                onChange={handleChange}
-                onKeyDown={(e) => handleKeyDown(e, selectedCountry.code)}
-                onSelect={(e) => handleSelect(e, selectedCountry.code)}
-                onFocus={handleFocus}
-                onPaste={handlePaste}
-                required
-                className="flex-1 px-4 py-3 bg-[#0a2a4a]/60 border border-[#4db5ff]/20 rounded-lg focus:ring-2 focus:ring-[#4db5ff]/50 text-white placeholder-white/50"
-                placeholder={`${selectedCountry.code} XX XXX XX XX`}
-              />
-            </div>
-            <div className="text-xs text-white/60 text-right">
-              {formData.phone_number.length}/{selectedCountry.length}
-            </div>
+            <input
+              id="phone_number"
+              name="phone_number"
+              ref={phoneInputRef}
+              type="tel"
+              inputMode="numeric"
+              pattern="[+][0-9]*"
+              value={formData.phone_number}
+              onChange={handleChange}
+              onKeyDown={(e) => handleKeyDown(e, "+998")}
+              onSelect={(e) => handleSelect(e, "+998")}
+              onFocus={handleFocus}
+              onPaste={handlePaste}
+              required
+              className="w-full px-4 py-3 bg-[#0a2a4a]/60 border border-[#4db5ff]/20 rounded-lg focus:ring-2 focus:ring-[#4db5ff]/50 text-white placeholder-white/50"
+              placeholder="+998 XX XXX XX XX"
+            />
           </div>
+
+      
 
           <button type="submit" disabled={loading} className="relative w-full">
             <div className="relative bg-[#4db5ff] rounded-lg py-3 px-6 flex items-center justify-center">
@@ -384,7 +333,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }: Registr
                   <span className="text-[#041a2e] font-bold">Yuborilmoqda...</span>
                 </>
               ) : (
-                <span className="text-[#041a2e] font-bold">Yopiq kanalga qo'shilish</span>
+                <span className="text-[#041a2e] font-bold">YOPIQ KANALGA QOSHILISH</span>
               )}
             </div>
           </button>

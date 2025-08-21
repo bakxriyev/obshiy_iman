@@ -32,13 +32,13 @@ export default function LandingPage1() {
         <div className="text-center">
           <p className="text-gray-300 text-sm mb-2">Iman Ahmedovadan 3 kunlik BEPUL maxsus dars</p>
 
+          <div className="mb-4">
+            <h2 className="text-yellow-400 text-lg font-semibold uppercase">"Programmalar bizni qarzdor qiladi"</h2>
+          </div>
           <h1 className="text-white text-xl font-bold mb-4 leading-tight">
-            DANGASALIK VA QO'RQUVLARINGIZNI YENGMASDAN BARAKALI VA XOTIRJAM HAYOTDA YASHAY OLMAYSIZ
+            Pul,  qarzdorlik va kambag’allik muammolarni hal qilish boʻyicha eng oson va tez ishlaydigan texnikalar beriladigan maxsus darsda qatnashish uchun pastdagi tugmani bosing
           </h1>
 
-          <div className="mb-4">
-            <h2 className="text-yellow-400 text-lg font-semibold uppercase">"Dangasalikdan qutul va xotirjam hayotda yasha"</h2>
-          </div>
 
           <div className="relative mb-4 flex justify-center">
             <div className="relative">
