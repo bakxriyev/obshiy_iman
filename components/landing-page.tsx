@@ -4,6 +4,7 @@ import Image from "next/image"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import RegistrationModal from "./register-modal"
+import { ArrowUp } from "lucide-react"
 
 export default function LandingPage1() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -66,8 +67,10 @@ export default function LandingPage1() {
             </span>
           </button>
 
-          <p className="text-gray-400 text-sm mb-8">Bepul qatnashish uchun bosing</p>
-
+          <p className="text-gray-400 text-sm mb-8 flex flex-col items-center">
+  <ArrowUp className="mt-2 animate-bounce text-blue-400 w-6 h-6" />
+  Bepul qatnashish uchun bosing
+</p>
         
 
           <div className="mb-8">
