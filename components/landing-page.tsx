@@ -36,7 +36,7 @@ export default function LandingPage1() {
             <h2 className="text-yellow-400 text-lg font-semibold uppercase">"Programmalar bizni qarzdor qiladi"</h2>
           </div>
           <h1 className="text-white text-xl font-bold mb-4 leading-tight">
-            Pul,  qarzdorlik va kambag’allik muammolarni hal qilish boʻyicha eng oson va tez ishlaydigan texnikalar beriladigan maxsus darsda qatnashish uchun pastdagi tugmani bosing
+            Pul,  qarzdorlik va kambag’allik muammolarni hal qilish boʻyicha eng oson va tez ishlaydigan texnikalar beriladigan maxsus dars
           </h1>
 
 
