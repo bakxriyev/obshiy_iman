@@ -34,11 +34,11 @@ export default function LandingPage1() {
           <p className="text-gray-300 text-sm mb-2">Iman Ahmedovadan 3 kunlik BEPUL maxsus dars</p>
 
           <div className="mb-4">
-            <h2 className="text-yellow-400 text-lg font-semibold uppercase">"Programmalar bizni qarzdor qiladi"</h2>
+            <h2 className="text-yellow-400 text-lg font-semibold uppercase">"Dangasalikdan qutul va xotirjam hayotda yasha"</h2>
           </div>
-          <h1 className="text-white text-xl font-bold mb-4 leading-tight">
+          {/* <h1 className="text-white text-xl font-bold mb-4 leading-tight">
             Pul,  qarzdorlik va kambag’allik muammolarni hal qilish boʻyicha eng oson va tez ishlaydigan texnikalar beriladigan maxsus dars
-          </h1>
+          </h1> */}
 
 
           <div className="relative mb-4 flex justify-center">
@@ -74,7 +74,7 @@ export default function LandingPage1() {
         
 
           <div className="mb-8">
-            <h2 className="text-white font-bold text-xl mb-6">ONLAYN BEPUL DARSDA SIZ:</h2>
+            <h2 className="text-white font-bold text-xl mb-6 uppercase">3 kun ichida siz:</h2>
 
             <div className="space-y-4 uppercase">
               <div className="flex items-start gap-3 bg-gray-800/50 rounded-lg p-4">
@@ -82,7 +82,7 @@ export default function LandingPage1() {
                   <span className="text-white text-sm">✓</span>
                 </div>
                 <p className="text-gray-300 text-sm leading-relaxed text-left">
-                  dangasalikning ichki-ruhiy sabablarini bilib olasiz
+                  katta qarzlardan ham qisqa fursatda oson va yengil qutulish texnikalarini bilib olasiz
                 </p>
               </div>
 
@@ -91,8 +91,7 @@ export default function LandingPage1() {
                   <span className="text-white text-sm">✓</span>
                 </div>
                 <p className="text-gray-300 text-sm leading-relaxed text-left">
-                  nega doim katta ishtiyoq bilan boshlagan ishlaringizni oxiriga yetkazolmay to'xtab qolishi sabablarini
-                  bilib olasiz
+                  dangasalik va qoʻrquvlardan butun umrga xalos boʻlasiz
                 </p>
               </div>
 
@@ -101,8 +100,7 @@ export default function LandingPage1() {
                   <span className="text-white text-sm">✓</span>
                 </div>
                 <p className="text-gray-300 text-sm leading-relaxed text-left">
-                  qanday qilib birgina dangasalik va qo'rquvlarni yengish orqali hayotimizda katta o'zgarishlar bo'lishi
-                  mumkinligini bilib olasiz
+                  toʻgʻri duo qilish orqali endi sizda moliyaviy qiyinchiliklar boʻlmaydi
                 </p>
               </div>
             </div>
