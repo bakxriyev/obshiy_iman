@@ -152,6 +152,26 @@ export default function LandingPage1() {
         </div>
       </div>
 
+     <footer className="w-full py-6 mt-6 border-t border-gray-800 bg-gray-900">
+  <div className="flex items-center justify-center gap-3">
+    <p className="text-gray-500 text-sm">Created by</p>
+    <a
+      href="https://t.me/it_zoneuz" // Telegram link shu yerga
+      target="_blank"
+      rel="noopener noreferrer"
+      className="hover:opacity-80 transition"
+    >
+      <Image
+        src="/itzone.png" // logoni public ichiga qo'yasiz
+        alt="Logo"
+        width={90}
+        height={90}
+        className="rounded-full"
+      />
+    </a>
+  </div>
+</footer>
+
       <RegistrationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleModalSubmit} />
     </div>
   )
